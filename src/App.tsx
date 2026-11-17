@@ -40,6 +40,11 @@ export default function App() {
   const openBox = (boxId: number) => {
     if (gameEnded) return;
     
+    const target = boxes.find(box => box.id === boxId);
+    if (target && !target.isOpen) {
+      new Audio(target.hasTreasure ? chestOpenSound : evilLaughSound).play();
+    }
+
     setBoxes(prevBoxes => {
       const updatedBoxes = prevBoxes.map(box => {
         if (box.id === boxId && !box.isOpen) {
