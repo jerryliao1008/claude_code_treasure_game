@@ -82,13 +82,27 @@ export default function App() {
         </p>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8 relative">
         <div className="text-2xl text-center p-4 bg-amber-200/80 backdrop-blur-sm rounded-lg shadow-lg border-2 border-amber-400">
           <span className="text-amber-900">Current Score: </span>
           <span className={`${score >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             ${score}
           </span>
         </div>
+
+        {gameEnded && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className={`absolute text-2xl whitespace-nowrap ${
+              score > 0 ? 'text-green-600' : score < 0 ? 'text-red-600' : 'text-amber-700'
+            }`}
+            style={{ left: '100%', top: '50%', marginLeft: '1.5rem', translateY: '-50%', fontWeight: 700 }}
+          >
+            {score > 0 ? '🏆 WIN' : score < 0 ? '💀 LOSS' : '🤝 TIE'}
+          </motion.div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
