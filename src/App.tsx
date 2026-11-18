@@ -4,8 +4,12 @@ import { Button } from './components/ui/button';
 import closedChest from './assets/treasure_closed.png';
 import treasureChest from './assets/treasure_opened.png';
 import skeletonChest from './assets/treasure_opened_skeleton.png';
+import keyCursor from './assets/key.png';
 import chestOpenSound from './audios/chest_open.mp3';
 import evilLaughSound from './audios/chest_open_with_evil_laugh.mp3';
+import AuthPanel from './AuthPanel';
+import ScoreHistory from './ScoreHistory';
+import { api, type ScoreRecord } from './api';
 
 interface Box {
   id: number;
@@ -17,6 +21,8 @@ export default function App() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [score, setScore] = useState(0);
   const [gameEnded, setGameEnded] = useState(false);
+  const [user, setUser] = useState<string | null>(null);
+  const [history, setHistory] = useState<ScoreRecord[]>([]);
 
   const initializeGame = () => {
     // Randomly assign treasure to one box
@@ -35,7 +41,39 @@ export default function App() {
   // Initialize game automatically when component mounts
   useEffect(() => {
     initializeGame();
+    // Restore the login session (if any) after a page reload
+    api.me().then(res => setUser(res.username)).catch(() => setUser(null));
   }, []);
+
+  // Load the score history whenever the logged-in user changes
+  useEffect(() => {
+    if (user) {
+      api.getScores().then(setHistory).catch(() => setHistory([]));
+    } else {
+      setHistory([]);
+    }
+  }, [user]);
+
+  // Save the final score when a logged-in user's game ends; guests save nothing
+  useEffect(() => {
+    if (gameEnded && user) {
+      api.saveScore(score)
+        .then(() => api.getScores())
+        .then(setHistory)
+        .catch(err => console.error('Failed to save score:', err));
+    }
+  }, [gameEnded]);
+
+  // Switching account starts a new round, so a round is never saved under another account
+  const handleLogin = (username: string) => {
+    setUser(username);
+    initializeGame();
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    initializeGame();
+  };
 
   const openBox = (boxId: number) => {
     if (gameEnded) return;
@@ -72,6 +110,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 flex flex-col items-center justify-center p-8">
+      <AuthPanel user={user} onLogin={handleLogin} onLogout={handleLogout} />
+
       <div className="text-center mb-8">
         <h1 className="text-4xl mb-4 text-amber-900">🏴‍☠️ Treasure Hunt Game 🏴‍☠️</h1>
         <p className="text-amber-800 mb-4">
@@ -110,6 +150,7 @@ export default function App() {
               <motion.div
                 key={box.id}
                 className="flex flex-col items-center cursor-pointer"
+                style={box.isOpen || gameEnded ? undefined : { cursor: `url(${keyCursor}) 4 4, pointer` }}
                 whileHover={{ scale: box.isOpen ? 1 : 1.05 }}
                 whileTap={{ scale: box.isOpen ? 1 : 0.95 }}
                 onClick={() => openBox(box.id)}
@@ -207,6 +248,8 @@ export default function App() {
               </Button>
             </motion.div>
           )}
+
+      {user && <ScoreHistory scores={history} />}
     </div>
   );
 }
