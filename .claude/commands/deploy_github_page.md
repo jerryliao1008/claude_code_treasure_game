@@ -19,5 +19,6 @@ Steps:
    (no `--dotfiles`: `build/.vercel/` holds the Vercel project link and must not be published)
 5. Make sure Pages serves the `gh-pages` branch:
    - `gh api repos/<owner>/<repo>/pages` fails (404): create it with `gh api -X POST repos/<owner>/<repo>/pages -f "source[branch]=gh-pages" -f "source[path]=/"`
+   - a 409 "already enabled" from the POST is fine (GitHub may enable Pages on its own when `gh-pages` is first pushed)
    - otherwise leave it as is.
 6. Report the site URL `https://<owner>.github.io/<repo>/` (first publish can take a minute or two), and remind the user that login / score history is not available on the published site.
