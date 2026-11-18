@@ -5,6 +5,8 @@
 
   export default defineConfig({
     plugins: [react()],
+    // Relative asset paths so the build works under a sub-path (GitHub Pages) and at a domain root (Vercel)
+    base: './',
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
